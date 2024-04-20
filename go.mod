@@ -1,4 +1,4 @@
-module harparser
+module github.com/Wowkoltyy/harparser
 
 go 1.22.2
 
