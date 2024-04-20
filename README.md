@@ -13,7 +13,7 @@ package main
 
 import (
 	"fmt"
-	"harparser"
+	"github.com/Wowkoltyy/harparser"
 )
 
 func main() {
