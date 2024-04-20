@@ -1,0 +1,22 @@
+curl 'https://discord.com/api/v9/users/@me/phone' \
+  -H 'authority: discord.com' \
+  -H 'accept: */*' \
+  -H 'accept-language: en-US,en-RU;q=0.9,ru-RU;q=0.8' \
+  -H 'authorization: ***' \
+  -H 'content-type: application/json' \
+  -H 'cookie: ***' \
+  -H 'origin: https://discord.com' \
+  -H 'referer: https://discord.com/channels/@me' \
+  -H 'sec-ch-ua: "Not_A Brand";v="8", "Chromium";v="120"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "macOS"' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-site: same-origin' \
+  -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) discord/0.0.301 Chrome/120.0.6099.291 Electron/28.2.10 Safari/537.36' \
+  -H 'x-debug-options: bugReporterEnabled' \
+  -H 'x-discord-locale: en-GB' \
+  -H 'x-discord-timezone: Europe/Moscow' \
+  -H 'x-super-properties: ***' \
+  --data-raw '{"phone":"+1","change_phone_reason":"user_settings_update"}' \
+  --compressed
