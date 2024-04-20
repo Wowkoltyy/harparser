@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	http "github.com/bogdanfinn/fhttp"
+	"github.com/mileusna/useragent"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -109,10 +111,12 @@ type HAR struct {
 }
 
 type RequestInfo struct {
-	URL     *url.URL
-	Header  http.Header
-	XHeader http.Header
-	Cookies []*http.Cookie
+	URL           *url.URL
+	Header        http.Header
+	XHeader       http.Header
+	Cookies       []*http.Cookie
+	UserAgent     useragent.UserAgent
+	ChromeVersion int
 }
 
 // ParseRequestFromHAR Parses request given from HAR reader and returns the request by requestUrl info
@@ -135,10 +139,26 @@ func ParseRequestFromHAR(data []byte, requestUrl string) (*RequestInfo, error) {
 			header := http.Header{}
 			xHeader := http.Header{}
 			cookies := make([]*http.Cookie, 0)
+			var userAgent useragent.UserAgent
+			chromeVersion := 0
+
 			for _, h := range entry.Request.Headers {
 				name := strings.ToLower(h.Name)
 				if name == "cookie" {
 					continue
+				}
+				if name == "user-agent" {
+					userAgent = useragent.Parse(h.Value)
+					uaParts := strings.Split(h.Value, "Chrome/")
+					if len(uaParts) == 2 {
+						temp := strings.Split(uaParts[1], " ")
+						if len(temp) > 0 {
+							chromeFullVersion := strings.Split(temp[0], ".")
+							if len(chromeFullVersion) > 0 {
+								chromeVersion, _ = strconv.Atoi(chromeFullVersion[0])
+							}
+						}
+					}
 				}
 				if strings.HasPrefix(name, "x-") {
 					xHeader.Add(h.Name, h.Value)
@@ -175,10 +195,12 @@ func ParseRequestFromHAR(data []byte, requestUrl string) (*RequestInfo, error) {
 				})
 			}
 			return &RequestInfo{
-				Cookies: cookies,
-				XHeader: xHeader,
-				Header:  header,
-				URL:     urlParsed,
+				Cookies:       cookies,
+				XHeader:       xHeader,
+				Header:        header,
+				URL:           urlParsed,
+				UserAgent:     userAgent,
+				ChromeVersion: chromeVersion,
 			}, nil
 		}
 	}
@@ -212,6 +234,8 @@ func ParseCURL(data []byte) (*RequestInfo, error) {
 	header := http.Header{}
 	xHeader := http.Header{}
 	cookies := make([]*http.Cookie, 0)
+	var userAgent useragent.UserAgent
+	chromeVersion := 0
 
 	for _, part := range parts[1:] {
 		part = strings.TrimSpace(part)
@@ -231,6 +255,19 @@ func ParseCURL(data []byte) (*RequestInfo, error) {
 				cookies = ParseCookies(headerParts[1])
 				continue
 			}
+			if name == "user-agent" {
+				userAgent = useragent.Parse(headerParts[1])
+				uaParts := strings.Split(headerParts[1], "Chrome/")
+				if len(uaParts) == 2 {
+					temp := strings.Split(uaParts[1], " ")
+					if len(temp) > 0 {
+						chromeFullVersion := strings.Split(temp[0], ".")
+						if len(chromeFullVersion) > 0 {
+							chromeVersion, _ = strconv.Atoi(chromeFullVersion[0])
+						}
+					}
+				}
+			}
 			if strings.HasPrefix(name, "x-") {
 				xHeader.Add(headerParts[0], headerParts[1])
 			} else {
@@ -239,10 +276,12 @@ func ParseCURL(data []byte) (*RequestInfo, error) {
 		}
 	}
 	return &RequestInfo{
-		Cookies: cookies,
-		XHeader: xHeader,
-		Header:  header,
-		URL:     urlParsed,
+		Cookies:       cookies,
+		XHeader:       xHeader,
+		Header:        header,
+		URL:           urlParsed,
+		UserAgent:     userAgent,
+		ChromeVersion: chromeVersion,
 	}, nil
 }
 
