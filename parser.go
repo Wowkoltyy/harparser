@@ -83,9 +83,10 @@ type HAR struct {
 					Secure   bool      `json:"secure"`
 					SameSite string    `json:"sameSite"`
 				} `json:"cookies"`
-				Content struct {
+				Content *struct {
 					Size     int    `json:"size"`
 					MimeType string `json:"mimeType"`
+					Text     string `json:"text"`
 				} `json:"content"`
 				RedirectURL  string      `json:"redirectURL"`
 				HeadersSize  int         `json:"headersSize"`
@@ -95,16 +96,16 @@ type HAR struct {
 			} `json:"response"`
 			ServerIPAddress string    `json:"serverIPAddress"`
 			StartedDateTime time.Time `json:"startedDateTime"`
-			Time            int       `json:"time"`
+			Time            float32   `json:"time"`
 			Timings         struct {
-				Blocked         int `json:"blocked"`
-				Dns             int `json:"dns"`
-				Ssl             int `json:"ssl"`
-				Connect         int `json:"connect"`
-				Send            int `json:"send"`
-				Wait            int `json:"wait"`
-				Receive         int `json:"receive"`
-				BlockedQueueing int `json:"_blocked_queueing"`
+				Blocked         float32 `json:"blocked"`
+				Dns             float32 `json:"dns"`
+				Ssl             float32 `json:"ssl"`
+				Connect         float32 `json:"connect"`
+				Send            float32 `json:"send"`
+				Wait            float32 `json:"wait"`
+				Receive         float32 `json:"receive"`
+				BlockedQueueing float32 `json:"_blocked_queueing"`
 			} `json:"timings"`
 		} `json:"entries"`
 	} `json:"log"`
@@ -283,6 +284,66 @@ func ParseCURL(data []byte) (*RequestInfo, error) {
 		UserAgent:     userAgent,
 		ChromeVersion: chromeVersion,
 	}, nil
+}
+
+type HARResponse struct {
+	Content  string
+	MimeType string
+}
+type HARRequest struct {
+	Method   string
+	URL      string
+	Headers  http.Header
+	PostData string
+}
+type HAREntry struct {
+	HARRequest  *HARRequest
+	HARResponse *HARResponse
+}
+type ParsedHAR []HAREntry
+
+func ParseHAR(data []byte) (ParsedHAR, error) {
+	var har *HAR
+	var parsedHAR ParsedHAR
+
+	if err := json.Unmarshal(data, &har); err != nil {
+		return nil, err
+	}
+
+	for _, entry := range har.Log.Entries {
+		req := &HARRequest{
+			Method:  entry.Request.Method,
+			URL:     entry.Request.Url,
+			Headers: http.Header{},
+		}
+		for _, h := range entry.Request.Headers {
+			req.Headers.Add(h.Name, h.Value)
+		}
+		if entry.Request.PostData != nil {
+			req.PostData = entry.Request.PostData.Text
+		}
+		var resp *HARResponse
+		if entry.Response != nil && entry.Response.Content != nil {
+			resp = &HARResponse{
+				Content:  entry.Response.Content.Text,
+				MimeType: entry.Response.Content.MimeType,
+			}
+		}
+
+		parsedHAR = append(parsedHAR, HAREntry{
+			HARRequest:  req,
+			HARResponse: resp,
+		})
+	}
+	return parsedHAR, nil
+}
+
+func ParseFullHARFile(path string) (ParsedHAR, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return ParseHAR(data)
 }
 
 func ParseCURLFile(path string) (*RequestInfo, error) {
