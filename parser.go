@@ -123,14 +123,11 @@ type RequestInfo struct {
 // ParseRequestFromHAR Parses request given from HAR reader and returns the request by requestUrl info
 func ParseRequestFromHAR(data []byte, requestUrl string) (*RequestInfo, error) {
 
-	urlParsed, err := url.Parse(requestUrl)
-	if err != nil {
-		return nil, err
-	}
+	urlParsed, _ := url.Parse(requestUrl)
 
 	var har *HAR
 
-	if err = json.Unmarshal(data, &har); err != nil {
+	if err := json.Unmarshal(data, &har); err != nil {
 		return nil, err
 	}
 
@@ -148,6 +145,9 @@ func ParseRequestFromHAR(data []byte, requestUrl string) (*RequestInfo, error) {
 				if name == "cookie" {
 					continue
 				}
+				if name == "content-length" {
+					continue
+				}
 				if name == "user-agent" {
 					userAgent = useragent.Parse(h.Value)
 					uaParts := strings.Split(h.Value, "Chrome/")
@@ -161,6 +161,7 @@ func ParseRequestFromHAR(data []byte, requestUrl string) (*RequestInfo, error) {
 						}
 					}
 				}
+
 				if strings.HasPrefix(name, "x-") {
 					xHeader.Add(h.Name, h.Value)
 				} else {
@@ -254,6 +255,9 @@ func ParseCURL(data []byte) (*RequestInfo, error) {
 			name := strings.ToLower(headerParts[0])
 			if name == "cookie" {
 				cookies = ParseCookies(headerParts[1])
+				continue
+			}
+			if name == "content-length" {
 				continue
 			}
 			if name == "user-agent" {
