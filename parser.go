@@ -10,7 +10,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type HAR struct {
@@ -49,14 +48,14 @@ type HAR struct {
 				} `json:"headers"`
 				QueryString []interface{} `json:"queryString"`
 				Cookies     []*struct {
-					Name     string    `json:"name"`
-					Value    string    `json:"value"`
-					Path     string    `json:"path"`
-					Domain   string    `json:"domain"`
-					Expires  time.Time `json:"expires"`
-					HttpOnly bool      `json:"httpOnly"`
-					Secure   bool      `json:"secure"`
-					SameSite string    `json:"sameSite"`
+					Name     string `json:"name"`
+					Value    string `json:"value"`
+					Path     string `json:"path"`
+					Domain   string `json:"domain"`
+					Expires  string `json:"expires"`
+					HttpOnly bool   `json:"httpOnly"`
+					Secure   bool   `json:"secure"`
+					SameSite string `json:"sameSite"`
 				} `json:"cookies"`
 				HeadersSize int `json:"headersSize"`
 				BodySize    int `json:"bodySize"`
@@ -74,14 +73,14 @@ type HAR struct {
 					Value string `json:"value"`
 				} `json:"headers"`
 				Cookies []struct {
-					Name     string    `json:"name"`
-					Value    string    `json:"value"`
-					Path     string    `json:"path"`
-					Domain   string    `json:"domain"`
-					Expires  time.Time `json:"expires"`
-					HttpOnly bool      `json:"httpOnly"`
-					Secure   bool      `json:"secure"`
-					SameSite string    `json:"sameSite"`
+					Name     string `json:"name"`
+					Value    string `json:"value"`
+					Path     string `json:"path"`
+					Domain   string `json:"domain"`
+					Expires  string `json:"expires"`
+					HttpOnly bool   `json:"httpOnly"`
+					Secure   bool   `json:"secure"`
+					SameSite string `json:"sameSite"`
 				} `json:"cookies"`
 				Content *struct {
 					Size     int    `json:"size"`
@@ -189,8 +188,7 @@ func ParseRequestFromHAR(data []byte, requestUrl string) (*RequestInfo, error) {
 					Value:      c.Value,
 					Path:       c.Path,
 					Domain:     c.Domain,
-					Expires:    time.Time{},
-					RawExpires: c.Expires.String(),
+					RawExpires: c.Expires,
 					Secure:     c.Secure,
 					HttpOnly:   c.HttpOnly,
 					SameSite:   sameSite,
