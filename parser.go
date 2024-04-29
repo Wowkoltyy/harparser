@@ -94,9 +94,9 @@ type HAR struct {
 				TransferSize int         `json:"_transferSize"`
 				Error        interface{} `json:"_error"`
 			} `json:"response"`
-			ServerIPAddress string    `json:"serverIPAddress"`
-			StartedDateTime time.Time `json:"startedDateTime"`
-			Time            float32   `json:"time"`
+			ServerIPAddress string      `json:"serverIPAddress"`
+			StartedDateTime interface{} `json:"startedDateTime"`
+			Time            float32     `json:"time"`
 			Timings         struct {
 				Blocked         float32 `json:"blocked"`
 				Dns             float32 `json:"dns"`
